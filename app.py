@@ -17,10 +17,10 @@ language = st.sidebar.selectbox(
 # SIDEBAR – NIVELES DE RENTABILIDAD
 # ==================================================
 st.sidebar.markdown("---")
-st.sidebar.markdown("### 📈 Niveles de rentabilidad")
 
 if language == "Español":
     st.sidebar.markdown("""
+### 📈 Niveles de rentabilidad
 < 0% 🔴 **Pérdida**  
 0 – 5% ⚠️ **Muy bajo (riesgo alto)**  
 5 – 10% 🟡 **Rentable pero frágil**  
@@ -29,6 +29,7 @@ if language == "Español":
 """)
 else:
     st.sidebar.markdown("""
+### 📈 Profitability levels
 < 0% 🔴 **Loss**  
 0 – 5% ⚠️ **Very low (high risk)**  
 5 – 10% 🟡 **Profitable but fragile**  
@@ -205,3 +206,4 @@ else:
     st.error(t["no_rentable"])
 
 st.caption(t["disclaimer"])
+
