@@ -1,0 +1,2 @@
+# EarningsCalculator
+Calculator for entrepreneurs
