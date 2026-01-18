@@ -1,9 +1,33 @@
 import streamlit as st
+import pandas as pd
+from io import BytesIO
 
 # ==================================================
 # CONFIGURACIÓN
 # ==================================================
 st.set_page_config(page_title="Profitability Calculator", layout="centered")
+
+# ==================================================
+# LOGIN SIMPLE CON st.secrets (SEGURO LOCAL + CLOUD)
+# ==================================================
+try:
+    APP_PASSWORD = st.secrets["APP_PASSWORD"]
+except Exception:
+    APP_PASSWORD = "1234"  # fallback local
+
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if not st.session_state.authenticated:
+    st.title("🔐 Access")
+    password = st.text_input("Password", type="password")
+    if st.button("Enter"):
+        if password == APP_PASSWORD:
+            st.session_state.authenticated = True
+            st.rerun()
+        else:
+            st.error("Incorrect Password")
+    st.stop()
 
 # ==================================================
 # IDIOMA
@@ -45,7 +69,7 @@ TEXT = {
         "title": "📊 Calculadora de Rentabilidad",
         "subtitle": "Calcula ganancias reales considerando todos tus gastos",
         "products": "1️⃣ Productos / Servicios",
-        "add_product": "➕ Agregar producto / servicio",
+        "add_product": "➕ Agregar",
         "remove_product": "🗑 Eliminar",
         "name": "Nombre",
         "price": "Precio de venta",
@@ -64,17 +88,16 @@ TEXT = {
         "expenses": "Gastos totales",
         "profit": "Ganancia / Pérdida",
         "margin": "Margen (%)",
-        "breakeven": "Punto de equilibrio (unidades)",
         "rentable": "🟢 Tu negocio ES rentable",
         "no_rentable": "🔴 Tu negocio NO es rentable",
-        "warning_price": "El precio es menor o igual al costo variable.",
+        "download": "📥 Descargar Excel",
         "disclaimer": "Herramienta orientativa. No reemplaza asesoría financiera."
     },
     "English": {
         "title": "📊 Profitability Calculator",
         "subtitle": "Calculate real profits including all expenses",
         "products": "1️⃣ Products / Services",
-        "add_product": "➕ Add product / service",
+        "add_product": "➕ Add",
         "remove_product": "🗑 Remove",
         "name": "Name",
         "price": "Selling price",
@@ -93,10 +116,9 @@ TEXT = {
         "expenses": "Total expenses",
         "profit": "Profit / Loss",
         "margin": "Margin (%)",
-        "breakeven": "Break-even point (units)",
         "rentable": "🟢 Your business IS profitable",
         "no_rentable": "🔴 Your business is NOT profitable",
-        "warning_price": "Selling price is lower or equal to variable costs.",
+        "download": "📥 Download Excel",
         "disclaimer": "Indicative tool. Does not replace financial advice."
     }
 }
@@ -205,5 +227,55 @@ if ganancia > 0:
 else:
     st.error(t["no_rentable"])
 
-st.caption(t["disclaimer"])
+# ==================================================
+# EXPORTAR A EXCEL (ES + EN)
+# ==================================================
+rows_es = []
+rows_en = []
 
+for p in st.session_state.products:
+    rows_es.append({
+        "Producto / Servicio": p["name"],
+        "Precio": p["price"],
+        "Unidades": p["units"],
+        "Ingresos": p["price"] * p["units"],
+        "Costo variable unitario": p["cv_materia"] + p["cv_envio"] + p["cv_comision"]
+    })
+
+    rows_en.append({
+        "Product / Service": p["name"],
+        "Price": p["price"],
+        "Units": p["units"],
+        "Revenue": p["price"] * p["units"],
+        "Variable cost per unit": p["cv_materia"] + p["cv_envio"] + p["cv_comision"]
+    })
+
+df_es = pd.DataFrame(rows_es)
+df_en = pd.DataFrame(rows_en)
+
+resumen_es = pd.DataFrame({
+    "Concepto": ["Ingresos", "Costos variables", "Costos fijos", "Ganancia", "Margen %"],
+    "Monto": [total_revenue, total_variable_costs, costos_fijos, ganancia, margen]
+})
+
+resumen_en = pd.DataFrame({
+    "Concept": ["Revenue", "Variable costs", "Fixed costs", "Profit", "Margin %"],
+    "Amount": [total_revenue, total_variable_costs, costos_fijos, ganancia, margen]
+})
+
+output = BytesIO()
+with pd.ExcelWriter(output, engine="xlsxwriter") as writer:
+    df_es.to_excel(writer, index=False, sheet_name="Productos_ES")
+    resumen_es.to_excel(writer, index=False, sheet_name="Resumen_ES")
+
+    df_en.to_excel(writer, index=False, sheet_name="Products_EN")
+    resumen_en.to_excel(writer, index=False, sheet_name="Summary_EN")
+
+st.download_button(
+    label=t["download"],
+    data=output.getvalue(),
+    file_name="profitability.xlsx",
+    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+)
+
+st.caption(t["disclaimer"])
