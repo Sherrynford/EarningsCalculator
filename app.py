@@ -34,7 +34,7 @@ if not st.session_state.authenticated:
 # ==================================================
 language = st.sidebar.selectbox(
     "🌐 Language / Idioma",
-    ("Español", "English")
+    ("English", "Español")
 )
 
 # ==================================================
@@ -279,3 +279,4 @@ st.download_button(
 )
 
 st.caption(t["disclaimer"])
+
