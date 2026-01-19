@@ -167,7 +167,7 @@ total_variable_costs = 0
 for i, p in enumerate(st.session_state.products):
 
     # Columnas para nombre, precio y unidades
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns([2, 2, 2])
     p["name"] = col1.text_input(t["name"], value=p["name"], key=f"name_{i}")
     
     # Dejar vacío si es 0
@@ -189,7 +189,7 @@ for i, p in enumerate(st.session_state.products):
 
     # Columnas para costos variables
     st.text(t["cv"])
-    col4, col5, col6 = st.columns(3)
+    col4, col5, col6 = st.columns([2, 2, 2])
     p["cv_materia"] = col4.number_input(
         t["materia"], 
         min_value=0.0, 
@@ -246,7 +246,7 @@ if st.button(t["add_product"]):
 # ==================================================
 st.header(t["cf"])
 
-col1, col2, col3, col4 = st.columns(4)
+col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
 arriendo = col1.number_input(t["arriendo"], min_value=0.0, step=1000.0, value=0.0)
 internet = col2.number_input(t["internet"], min_value=0.0, step=1000.0, value=0.0)
 publicidad = col3.number_input(t["publicidad"], min_value=0.0, step=1000.0, value=0.0)
