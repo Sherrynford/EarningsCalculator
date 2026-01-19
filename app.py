@@ -71,7 +71,7 @@ TEXT = {
         "products": "1️⃣ Productos / Servicios",
         "add_product": "➕ Agregar",
         "remove_product": "🗑 Eliminar",
-        "name": "Nombre",
+        "name": "Nombre Producto/Servicio",
         "price": "Precio de venta",
         "units": "Unidades vendidas al mes",
         "cv": "Costos variables por unidad",
@@ -99,7 +99,7 @@ TEXT = {
         "products": "1️⃣ Products / Services",
         "add_product": "➕ Add",
         "remove_product": "🗑 Remove",
-        "name": "Name",
+        "name": "Name Product/Service",
         "price": "Selling price",
         "units": "Units sold per month",
         "cv": "Variable costs per unit",
@@ -155,7 +155,7 @@ st.title(t["title"])
 st.caption(t["subtitle"])
 
 # ==================================================
-# PRODUCTOS
+# PRODUCTOS (INTERFAZ MINIMALISTA)
 # ==================================================
 st.header(t["products"])
 
@@ -165,27 +165,71 @@ total_units = 0
 total_variable_costs = 0
 
 for i, p in enumerate(st.session_state.products):
-    with st.container(border=True):
-        p["name"] = st.text_input(t["name"], value=p["name"], key=f"name_{i}")
-        p["price"] = st.number_input(t["price"], min_value=0.0, step=100.0, value=p["price"], key=f"price_{i}")
-        p["units"] = st.number_input(t["units"], min_value=0, step=1, value=p["units"], key=f"units_{i}")
 
-        st.caption(t["cv"])
-        p["cv_materia"] = st.number_input(t["materia"], min_value=0.0, step=50.0, value=p["cv_materia"], key=f"mat_{i}")
-        p["cv_envio"] = st.number_input(t["envio"], min_value=0.0, step=50.0, value=p["cv_envio"], key=f"env_{i}")
-        p["cv_comision"] = st.number_input(t["comision"], min_value=0.0, step=50.0, value=p["cv_comision"], key=f"com_{i}")
+    # Columnas para nombre, precio y unidades
+    col1, col2, col3 = st.columns(3)
+    p["name"] = col1.text_input(t["name"], value=p["name"], key=f"name_{i}")
+    
+    # Dejar vacío si es 0
+    p["price"] = col2.number_input(
+        t["price"], 
+        min_value=0.0, 
+        step=50.0, 
+        value=p["price"] if p["price"] > 0 else 0.0, 
+        format="%.2f", 
+        key=f"price_{i}"
+    )
+    p["units"] = col3.number_input(
+        t["units"], 
+        min_value=0, 
+        step=1, 
+        value=p["units"] if p["units"] > 0 else 0, 
+        key=f"units_{i}"
+    )
 
-        if st.button(t["remove_product"], key=f"del_{i}"):
-            delete_index = i
+    # Columnas para costos variables
+    st.text(t["cv"])
+    col4, col5, col6 = st.columns(3)
+    p["cv_materia"] = col4.number_input(
+        t["materia"], 
+        min_value=0.0, 
+        step=50.0, 
+        value=p["cv_materia"] if p["cv_materia"] > 0 else 0.0, 
+        format="%.2f", 
+        key=f"mat_{i}"
+    )
+    p["cv_envio"] = col5.number_input(
+        t["envio"], 
+        min_value=0.0, 
+        step=50.0, 
+        value=p["cv_envio"] if p["cv_envio"] > 0 else 0.0, 
+        format="%.2f", 
+        key=f"env_{i}"
+    )
+    p["cv_comision"] = col6.number_input(
+        t["comision"], 
+        min_value=0.0, 
+        step=50.0, 
+        value=p["cv_comision"] if p["cv_comision"] > 0 else 0.0, 
+        format="%.2f", 
+        key=f"com_{i}"
+    )
 
+    # Botón eliminar
+    if st.button(t["remove_product"], key=f"del_{i}"):
+        delete_index = i
+
+    # Acumuladores
     total_revenue += p["price"] * p["units"]
     total_units += p["units"]
     total_variable_costs += (p["cv_materia"] + p["cv_envio"] + p["cv_comision"]) * p["units"]
 
+# Eliminar producto si corresponde
 if delete_index is not None and len(st.session_state.products) > 1:
     st.session_state.products.pop(delete_index)
     st.rerun()
 
+# Botón agregar producto
 if st.button(t["add_product"]):
     st.session_state.products.append({
         "name": "",
@@ -198,13 +242,15 @@ if st.button(t["add_product"]):
     st.rerun()
 
 # ==================================================
-# COSTOS FIJOS
+# COSTOS FIJOS (MINIMALISTA)
 # ==================================================
 st.header(t["cf"])
-arriendo = st.number_input(t["arriendo"], min_value=0.0, step=1000.0)
-internet = st.number_input(t["internet"], min_value=0.0, step=1000.0)
-publicidad = st.number_input(t["publicidad"], min_value=0.0, step=1000.0)
-otros = st.number_input(t["otros"], min_value=0.0, step=1000.0)
+
+col1, col2, col3, col4 = st.columns(4)
+arriendo = col1.number_input(t["arriendo"], min_value=0.0, step=1000.0, value=0.0)
+internet = col2.number_input(t["internet"], min_value=0.0, step=1000.0, value=0.0)
+publicidad = col3.number_input(t["publicidad"], min_value=0.0, step=1000.0, value=0.0)
+otros = col4.number_input(t["otros"], min_value=0.0, step=1000.0, value=0.0)
 
 costos_fijos = arriendo + internet + publicidad + otros
 
@@ -279,4 +325,3 @@ st.download_button(
 )
 
 st.caption(t["disclaimer"])
-
